@@ -15,48 +15,35 @@ import { Colors, FontFamily, FontSize, Spacing, BorderRadius, Shadows } from '@/
 import { CardInfo, ProfileAvatar, SectionTitle, LoadingState } from '@/components';
 import { useAuthStore } from '@/store/auth.store';
 import { usePetsStore } from '@/store/pets.store';
-import { mockGetPets, mockGetTracking } from '@/mocks/pets.mock';
+import { usePets } from '@/hooks/usePets';
+import { useTracking } from '@/hooks/useTracking';
 import { useAlerts } from '@/hooks/useAlerts';
 import type { Alert } from '@/types/alert.types';
 
 const { width } = Dimensions.get('window');
-
-const QUICK_ACTIONS = [
-  { id: 'map', icon: 'location-outline' as const, label: 'Ver no mapa', route: '/map' },
-  { id: 'geo', icon: 'scan-outline' as const, label: 'Cerca virtual', route: '/geofencing/pet-001' },
-  { id: 'history', icon: 'time-outline' as const, label: 'Histórico', route: '/map' },
-  { id: 'alerts', icon: 'notifications-outline' as const, label: 'Alertas', route: '/alerts' },
-] as const;
 
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const user = useAuthStore(s => s.user);
   
-  const pets = usePetsStore(s => s.pets);
+  const petsStore = usePetsStore(s => s.pets);
   const activePetId = usePetsStore(s => s.activePetId);
   const setPets = usePetsStore(s => s.setPets);
   const setActivePet = usePetsStore(s => s.setActivePet);
 
-  // Fetch pets
-  const { data: petsData, isLoading: loadingPets } = useQuery({
-    queryKey: ['pets'],
-    queryFn: mockGetPets,
-  });
+  // Fetch pets via hook
+  const { data: petsData, isLoading: loadingPets } = usePets();
 
   useEffect(() => {
     if (petsData) setPets(petsData);
   }, [petsData, setPets]);
 
-  const activePet = pets.find(p => p.id === activePetId) ?? null;
+  const pets = petsData ?? petsStore;
+  const activePet = pets.find(p => p.id === activePetId) ?? pets[0] ?? null;
 
   // Fetch tracking for active pet
-  const { data: tracking } = useQuery({
-    queryKey: ['tracking', activePet?.id],
-    queryFn: () => mockGetTracking(activePet!.id),
-    enabled: !!activePet?.deviceId,
-    refetchInterval: 30_000,
-  });
+  const { data: tracking } = useTracking(activePet?.id, !!activePet?.deviceId);
 
   const { data: alerts } = useAlerts();
   const unreadCount = alerts?.filter((a: Alert) => !a.read).length ?? 0;
@@ -163,7 +150,12 @@ export default function HomeScreen() {
 
           {/* Quick actions */}
           <View style={styles.quickActions}>
-            {QUICK_ACTIONS.map(action => (
+            {[
+              { id: 'map', icon: 'location-outline' as const, label: 'Ver no mapa', route: '/map' },
+              { id: 'geo', icon: 'scan-outline' as const, label: 'Cerca virtual', route: `/geofencing/${activePet.id}` },
+              { id: 'history', icon: 'time-outline' as const, label: 'Histórico', route: '/map' },
+              { id: 'alerts', icon: 'notifications-outline' as const, label: 'Alertas', route: '/alerts' },
+            ].map(action => (
               <TouchableOpacity
                 key={action.id}
                 style={styles.actionItem}

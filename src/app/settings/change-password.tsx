@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing } from '@/theme';
 import { AppHeader, PasswordField, PrimaryButton } from '@/components';
+import { authService } from '@/services';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
@@ -34,15 +35,23 @@ export default function ChangePasswordScreen() {
   async function handleSave() {
     if (!validate()) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await authService.changePassword(currentPassword, newPassword);
       if (Platform.OS === 'web') {
         window.alert('Senha alterada com sucesso.');
         router.back();
       } else {
         Alert.alert('Sucesso', 'Senha alterada com sucesso.', [{ text: 'OK', onPress: () => router.back() }]);
       }
-    }, 1000);
+    } catch (err: any) {
+      if (Platform.OS === 'web') {
+        window.alert(`Erro: ${err.message ?? 'Falha ao alterar senha.'}`);
+      } else {
+        Alert.alert('Erro', err.message ?? 'Falha ao alterar senha.');
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
 

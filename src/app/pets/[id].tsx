@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius, Shadows } from '@/theme';
 import { CardInfo, ProfileAvatar, LoadingState, EmptyState, AppHeader } from '@/components';
-import { mockGetPet, mockGetTracking, mockGetDevices } from '@/mocks/pets.mock';
+import { usePet } from '@/hooks/usePets';
+import { useTracking } from '@/hooks/useTracking';
 
 const { width } = Dimensions.get('window');
 
@@ -51,24 +52,19 @@ export default function PetProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { data: pet, isLoading } = useQuery({
-    queryKey: ['pets', id],
-    queryFn: () => mockGetPet(id!),
-    enabled: !!id,
-  });
+  const { data: pet, isLoading } = usePet(id!);
+  const { data: tracking } = useTracking(id, !!pet?.deviceId);
 
-  const { data: tracking } = useQuery({
-    queryKey: ['tracking', id],
-    queryFn: () => mockGetTracking(id!),
-    enabled: !!pet?.deviceId,
-  });
-
-  const { data: devices } = useQuery({
-    queryKey: ['devices'],
-    queryFn: mockGetDevices,
-  });
-
-  const device = devices?.find((d: any) => d.petId === id);
+  const device = pet?.deviceId
+    ? {
+        id: pet.deviceId,
+        deviceCode: pet.deviceId,
+        petId: pet.id,
+        petName: pet.name,
+        status: tracking?.signalStatus ?? 'online',
+        battery: tracking?.battery ?? 100,
+      }
+    : null;
 
 
   if (isLoading) return <LoadingState />;

@@ -14,14 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius, Shadows } from '@/theme';
 import { AppHeader, InputField, PrimaryButton, CardInfo } from '@/components';
 import { usePetsStore } from '@/store/pets.store';
-
-// Simulates a device link request
-async function mockLinkDevice(deviceCode: string, linkKey: string, petId: string) {
-  await new Promise(r => setTimeout(r, 1200));
-  if (deviceCode.length < 6) throw new Error('Código do dispositivo inválido.');
-  if (linkKey.length < 8) throw new Error('Chave de vínculo inválida.');
-  return { deviceId: deviceCode.toUpperCase(), petId };
-}
+import { useLinkDevice } from '@/hooks/usePets';
 
 export default function DeviceLinkScreen() {
   const router = useRouter();
@@ -29,16 +22,15 @@ export default function DeviceLinkScreen() {
   const pets = usePetsStore(s => s.pets);
   const activePetId = usePetsStore(s => s.activePetId);
   const activePet = pets.find(p => p.id === activePetId) ?? null;
+  const linkDevice = useLinkDevice();
 
   const [deviceCode, setDeviceCode] = useState('');
   const [linkKey, setLinkKey] = useState('');
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate() {
     const e: Record<string, string> = {};
     if (!deviceCode.trim()) e.deviceCode = 'Código é obrigatório';
-    if (!linkKey.trim()) e.linkKey = 'Chave de vínculo é obrigatória';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -46,22 +38,35 @@ export default function DeviceLinkScreen() {
   async function handleLink() {
     if (!validate()) return;
     if (!activePet) {
-      Alert.alert('Atenção', 'Selecione um pet antes de vincular um dispositivo.');
+      if (Platform.OS === 'web') {
+        window.alert('Atenção: Selecione um pet antes de vincular um dispositivo.');
+      } else {
+        Alert.alert('Atenção', 'Selecione um pet antes de vincular um dispositivo.');
+      }
       return;
     }
 
-    setLoading(true);
     try {
-      await mockLinkDevice(deviceCode.trim(), linkKey.trim(), activePet.id);
-      Alert.alert(
-        'Dispositivo vinculado! 🎉',
-        `O dispositivo ${deviceCode.toUpperCase()} foi vinculado a ${activePet.name} com sucesso.`,
-        [{ text: 'OK', onPress: () => router.back() }],
-      );
+      await linkDevice.mutateAsync({
+        petId: activePet.id,
+        deviceCode: deviceCode.trim(),
+      });
+      if (Platform.OS === 'web') {
+        window.alert(`Dispositivo vinculado!\n\nO dispositivo ${deviceCode.toUpperCase()} foi vinculado a ${activePet.name} com sucesso.`);
+        router.back();
+      } else {
+        Alert.alert(
+          'Dispositivo vinculado! 🎉',
+          `O dispositivo ${deviceCode.toUpperCase()} foi vinculado a ${activePet.name} com sucesso.`,
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
+      }
     } catch (err: any) {
-      Alert.alert('Erro', err.message ?? 'Não foi possível vincular o dispositivo.');
-    } finally {
-      setLoading(false);
+      if (Platform.OS === 'web') {
+        window.alert(`Erro: ${err.message ?? 'Não foi possível vincular o dispositivo.'}`);
+      } else {
+        Alert.alert('Erro', err.message ?? 'Não foi possível vincular o dispositivo.');
+      }
     }
   }
 
@@ -175,7 +180,7 @@ export default function DeviceLinkScreen() {
           <PrimaryButton
             label="Vincular dispositivo"
             onPress={handleLink}
-            loading={loading}
+            loading={linkDevice.isPending}
             disabled={!activePet}
           />
         </View>

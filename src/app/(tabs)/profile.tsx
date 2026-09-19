@@ -114,7 +114,11 @@ export default function ProfileScreen() {
       {/* Dispositivos */}
       <Text style={styles.sectionLabel}>DISPOSITIVOS</Text>
       <CardInfo>
-        <SettingRow icon="hardware-chip-outline" label="Meus dispositivos" />
+        <SettingRow
+          icon="hardware-chip-outline"
+          label="Meus dispositivos"
+          onPress={() => router.push('/settings/devices' as any)}
+        />
         <View style={styles.divider} />
         <SettingRow
           icon="add-circle-outline"

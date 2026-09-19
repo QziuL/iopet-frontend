@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius } from '@/theme';
 import { InputField, PasswordField, PrimaryButton } from '@/components';
 import { useAuthStore } from '@/store/auth.store';
-import { mockRegister } from '@/mocks/auth.mock';
+import { authService } from '@/services';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -63,11 +63,19 @@ export default function RegisterScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await mockRegister(name, email, password);
+      const res = await authService.register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
       setAuth(res.user, res.token);
       router.replace('/(tabs)' as any);
     } catch (err: any) {
-      Alert.alert('Erro', err.message ?? 'Não foi possível criar a conta.');
+      if (Platform.OS === 'web') {
+        window.alert(`Erro: ${err.message ?? 'Não foi possível criar a conta.'}`);
+      } else {
+        Alert.alert('Erro', err.message ?? 'Não foi possível criar a conta.');
+      }
     } finally {
       setLoading(false);
     }

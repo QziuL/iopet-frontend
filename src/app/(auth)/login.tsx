@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius } from '@/theme';
 import { InputField, PasswordField, PrimaryButton, SecondaryButton } from '@/components';
 import { useAuthStore } from '@/store/auth.store';
-import { mockLogin } from '@/mocks/auth.mock';
+import { authService } from '@/services';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -61,11 +61,15 @@ export default function LoginScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await mockLogin(email, password);
+      const res = await authService.login({ email: email.trim(), password });
       setAuth(res.user, res.token);
       router.replace('/(tabs)' as any);
     } catch (err: any) {
-      Alert.alert('Erro', err.message ?? 'Não foi possível fazer login.');
+      if (Platform.OS === 'web') {
+        window.alert(`Erro: ${err.message ?? 'Não foi possível fazer login.'}`);
+      } else {
+        Alert.alert('Erro', err.message ?? 'Não foi possível fazer login.');
+      }
     } finally {
       setLoading(false);
     }

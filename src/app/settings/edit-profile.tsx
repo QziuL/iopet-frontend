@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius } from '@/theme';
 import { AppHeader, InputField, PrimaryButton, ProfileAvatar } from '@/components';
 import { useAuthStore } from '@/store/auth.store';
+import { authService } from '@/services';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -45,27 +46,39 @@ export default function EditProfileScreen() {
   }
 
   async function handleSave() {
-    if (!name.trim() || !email.trim()) {
+    if (!name.trim()) {
       if (Platform.OS === 'web') {
-        window.alert('Erro: Nome e e-mail são obrigatórios.');
+        window.alert('Erro: Nome é obrigatório.');
       } else {
-        Alert.alert('Erro', 'Nome e e-mail são obrigatórios.');
+        Alert.alert('Erro', 'Nome é obrigatório.');
       }
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      // Mock update
-      const updatedUser = { ...user!, name, email, avatarUrl: avatarUri };
-      setAuth(updatedUser, 'mock_token');
-      setLoading(false);
+    try {
+      const updatedUser = await authService.updateProfile({
+        name: name.trim(),
+        avatarUrl: avatarUri || undefined,
+      });
+      const currentToken = useAuthStore.getState().token;
+      if (currentToken) {
+        setAuth(updatedUser, currentToken);
+      }
       if (Platform.OS === 'web') {
-        window.alert('Perfil atualizado.');
+        window.alert('Perfil atualizado com sucesso.');
         router.back();
       } else {
-        Alert.alert('Sucesso', 'Perfil atualizado.', [{ text: 'OK', onPress: () => router.back() }]);
+        Alert.alert('Sucesso', 'Perfil atualizado com sucesso.', [{ text: 'OK', onPress: () => router.back() }]);
       }
-    }, 800);
+    } catch (err: any) {
+      if (Platform.OS === 'web') {
+        window.alert(`Erro: ${err.message ?? 'Falha ao atualizar perfil.'}`);
+      } else {
+        Alert.alert('Erro', err.message ?? 'Falha ao atualizar perfil.');
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

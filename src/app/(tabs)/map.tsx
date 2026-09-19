@@ -12,9 +12,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Colors, FontFamily, FontSize, Spacing, BorderRadius, Shadows } from '@/theme';
-import { CardInfo, LoadingState } from '@/components';
+import { CardInfo, LoadingState, EmptyState } from '@/components';
 import { usePetsStore } from '@/store/pets.store';
-import { mockGetTracking, mockGetLocationHistory } from '@/mocks/pets.mock';
+import { usePets } from '@/hooks/usePets';
+import { useTracking, useLocationHistory } from '@/hooks/useTracking';
+import { useGeofences } from '@/hooks/useGeofencing';
+import { useRouter } from 'expo-router';
 import type { LocationPoint } from '@/types/tracking.types';
 
 const { height } = Dimensions.get('window');
@@ -121,22 +124,73 @@ function buildLeafletHTML(
 }
 
 export default function MapScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
-  const activePet = usePetsStore(s => s.getActivePet());
+  const petsStore = usePetsStore(s => s.pets);
+  const activePetId = usePetsStore(s => s.activePetId);
+  const setPets = usePetsStore(s => s.setPets);
 
-  const { data: tracking, isLoading: loadingTracking, refetch } = useQuery({
-    queryKey: ['tracking', activePet?.id],
-    queryFn: () => mockGetTracking(activePet!.id),
-    enabled: !!activePet?.deviceId,
-    refetchInterval: 30_000,
-  });
+  const { data: petsData } = usePets();
 
-  const { data: history } = useQuery({
-    queryKey: ['history', activePet?.id],
-    queryFn: () => mockGetLocationHistory(activePet!.id),
-    enabled: !!activePet?.id,
-  });
+  React.useEffect(() => {
+    if (petsData) setPets(petsData);
+  }, [petsData, setPets]);
+
+  const pets = petsData ?? petsStore;
+  const activePet = pets.find(p => p.id === activePetId) ?? pets[0] ?? null;
+
+  const { data: tracking, isLoading: loadingTracking, refetch } = useTracking(
+    activePet?.id,
+    !!activePet?.deviceId,
+  );
+
+  const { data: history } = useLocationHistory(
+    activePet?.id,
+    !!activePet?.deviceId,
+  );
+
+  const { data: geofences } = useGeofences(activePet?.id ?? '');
+
+  if (!activePet) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + Spacing[4] }]}>
+        <EmptyState
+          icon="paw-outline"
+          title="Nenhum pet selecionado"
+          description="Selecione ou cadastre um pet para visualizar no mapa."
+          action={
+            <TouchableOpacity
+              style={styles.refreshBtn}
+              onPress={() => router.push('/pets/new' as any)}
+            >
+              <Text style={styles.refreshLabel}>+ Cadastrar pet</Text>
+            </TouchableOpacity>
+          }
+        />
+      </View>
+    );
+  }
+
+  if (!activePet.deviceId) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + Spacing[4] }]}>
+        <EmptyState
+          icon="hardware-chip-outline"
+          title="Sem dispositivo vinculado"
+          description={`Vincule um rastreador IoT ao pet ${activePet.name} para visualizar a localização em tempo real.`}
+          action={
+            <TouchableOpacity
+              style={styles.refreshBtn}
+              onPress={() => router.push('/settings/device-link' as any)}
+            >
+              <Text style={styles.refreshLabel}>Vincular dispositivo</Text>
+            </TouchableOpacity>
+          }
+        />
+      </View>
+    );
+  }
 
   if (loadingTracking || !tracking) {
     return <LoadingState message="Carregando rastreamento..." />;
@@ -152,7 +206,12 @@ export default function MapScreen() {
     lng: p.longitude,
   }));
 
-  const html = buildLeafletHTML(center, routePoints);
+  const geofencePoints = (geofences?.[0]?.points ?? []).map(p => ({
+    lat: p.latitude,
+    lng: p.longitude,
+  }));
+
+  const html = buildLeafletHTML(center, routePoints, geofencePoints);
 
   return (
     <View style={styles.container}>
