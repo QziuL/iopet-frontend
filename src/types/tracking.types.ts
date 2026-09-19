@@ -51,6 +51,7 @@ export interface Device {
   status: SignalStatus;
   battery: number;
   linkedAt: string;
+  ativo?: boolean;
 }
 
 export interface LinkDevicePayload {

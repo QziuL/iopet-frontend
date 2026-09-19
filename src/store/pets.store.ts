@@ -29,10 +29,17 @@ export const usePetsStore = create<PetsStore>((set, get) => ({
   updatePet: (id, data) =>
     set(state => ({ pets: state.pets.map(p => (p.id === id ? { ...p, ...data } : p)) })),
   removePet: (id) =>
-    set(state => ({ pets: state.pets.filter(p => p.id !== id) })),
+    set(state => {
+      const remaining = state.pets.filter(p => p.id !== id);
+      return {
+        pets: remaining,
+        activePetId:
+          state.activePetId === id ? (remaining[0]?.id ?? null) : state.activePetId,
+      };
+    }),
   setActivePet: (id) => set({ activePetId: id }),
   getActivePet: () => {
     const { pets, activePetId } = get();
-    return pets.find(p => p.id === activePetId) ?? null;
+    return pets.find(p => p.id === activePetId) ?? pets[0] ?? null;
   },
 }));

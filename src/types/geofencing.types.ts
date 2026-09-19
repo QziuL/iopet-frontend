@@ -23,6 +23,7 @@ export interface CreateGeofencePayload {
   name: string;
   points: GeoPoint[];
   active: boolean;
+  area?: number;
 }
 
 export interface UpdateGeofencePayload extends Partial<CreateGeofencePayload> {

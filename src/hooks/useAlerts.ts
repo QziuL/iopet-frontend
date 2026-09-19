@@ -1,32 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { mockGetAlerts } from '@/mocks/alerts.mock';
+import { alertsService } from '@/services/alerts.service';
 import type { Alert } from '@/types/alert.types';
 
 export function useAlerts() {
   return useQuery({
     queryKey: ['alerts'],
-    queryFn: mockGetAlerts,
-    refetchInterval: 30000, // Refresh every 30s to simulate new alerts
+    queryFn: () => alertsService.getAlerts(),
+    refetchInterval: 30000,
   });
 }
 
-// Emulação de marcar como lido
 export function useMarkAlertAsRead() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (alertId: string) => {
-      // Em uma API real: axios.put(`/alerts/${alertId}/read`)
-      await new Promise(r => setTimeout(r, 300));
-      return alertId;
-    },
+    mutationFn: (alertId: string) => alertsService.markAsRead(alertId),
     onMutate: async (alertId) => {
       await qc.cancelQueries({ queryKey: ['alerts'] });
       const previousAlerts = qc.getQueryData<Alert[]>(['alerts']);
-      
+
       if (previousAlerts) {
         qc.setQueryData<Alert[]>(
           ['alerts'],
-          previousAlerts.map(a => a.id === alertId ? { ...a, read: true } : a)
+          previousAlerts.map(a => (a.id === alertId ? { ...a, read: true } : a)),
         );
       }
       return { previousAlerts };
@@ -37,6 +32,16 @@ export function useMarkAlertAsRead() {
       }
     },
     onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['alerts'] });
+    },
+  });
+}
+
+export function useMarkAllAlertsAsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => alertsService.markAllAsRead(),
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['alerts'] });
     },
   });
