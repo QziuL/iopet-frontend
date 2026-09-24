@@ -28,9 +28,16 @@ export default function DeviceLinkScreen() {
   const [linkKey, setLinkKey] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const MAC_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+
   function validate() {
     const e: Record<string, string> = {};
-    if (!deviceCode.trim()) e.deviceCode = 'Código é obrigatório';
+    const code = deviceCode.trim();
+    if (!code) {
+      e.deviceCode = 'Endereço MAC é obrigatório';
+    } else if (!MAC_REGEX.test(code)) {
+      e.deviceCode = 'Formato inválido. Use o padrão MAC: AA:BB:CC:DD:EE:FF';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -49,7 +56,7 @@ export default function DeviceLinkScreen() {
     try {
       await linkDevice.mutateAsync({
         petId: activePet.id,
-        deviceCode: deviceCode.trim(),
+        deviceCode: deviceCode.trim().toUpperCase(),
       });
       if (Platform.OS === 'web') {
         window.alert(`Dispositivo vinculado!\n\nO dispositivo ${deviceCode.toUpperCase()} foi vinculado a ${activePet.name} com sucesso.`);
@@ -97,9 +104,9 @@ export default function DeviceLinkScreen() {
               <Ionicons name="hardware-chip-outline" size={48} color={Colors.primary.light} />
             </View>
             <View style={styles.illustrationText}>
-              <Text style={styles.illustrationTitle}>IoPet Tracker</Text>
+              <Text style={styles.illustrationTitle}>Rastreador ESP32 GPS</Text>
               <Text style={styles.illustrationSub}>
-                Encontre o código e a chave de vínculo na parte traseira ou embalagem do dispositivo.
+                Insira o endereço MAC físico do seu protótipo (exibido no monitor serial ao ligar).
               </Text>
             </View>
           </CardInfo>
@@ -133,8 +140,8 @@ export default function DeviceLinkScreen() {
 
           {/* Form */}
           <InputField
-            label="Código do dispositivo"
-            placeholder="Ex: IOPET-001"
+            label="Endereço MAC do dispositivo"
+            placeholder="Ex: 94:B5:55:2C:14:02"
             value={deviceCode}
             onChangeText={text => setDeviceCode(text.toUpperCase())}
             autoCapitalize="characters"
@@ -145,28 +152,14 @@ export default function DeviceLinkScreen() {
             }
           />
 
-          <InputField
-            label="Chave de vínculo"
-            placeholder="Chave de 8+ caracteres"
-            value={linkKey}
-            onChangeText={setLinkKey}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            error={errors.linkKey}
-            leftIcon={
-              <Ionicons name="key-outline" size={18} color={Colors.text.secondary} />
-            }
-          />
-
           {/* Steps guide */}
           <CardInfo style={styles.stepsCard}>
             <Text style={styles.stepsTitle}>Como vincular</Text>
             {[
-              { n: '1', text: 'Ligue o dispositivo IoPet Tracker.' },
-              { n: '2', text: 'Aguarde o LED azul piscar (modo de vinculação).' },
-              { n: '3', text: 'Insira o código e a chave acima.' },
-              { n: '4', text: 'Toque em "Vincular" e aguarde a confirmação.' },
+              { n: '1', text: 'Ligue o protótipo ESP32-C3.' },
+              { n: '2', text: 'Copie o MAC Address exibido no Monitor Serial (ou na etiqueta).' },
+              { n: '3', text: 'Cole o endereço no campo acima (formato AA:BB:CC:DD:EE:FF).' },
+              { n: '4', text: 'Toque em "Vincular dispositivo" para associar ao seu pet.' },
             ].map(step => (
               <View key={step.n} style={styles.step}>
                 <View style={styles.stepNum}>
