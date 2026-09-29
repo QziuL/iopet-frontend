@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth.store';
 
-// Default API URL: uses EXPO_PUBLIC_API_URL or defaults to localhost
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080/api';
+// Default API URL: uses EXPO_PUBLIC_API_URL or defaults to VPS backend
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://82.38.28.144:8080/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
