@@ -19,6 +19,7 @@ import { AppHeader, InputField, PrimaryButton, LoadingState, EmptyState } from '
 import { usePet, useUpdatePet, useDeletePet } from '@/hooks/usePets';
 import { usePetsStore } from '@/store/pets.store';
 import type { PetSpecies, PetSize } from '@/types/pet.types';
+import { pickProfileImage } from '@/utils/image.utils';
 
 type SpeciesOption = { key: PetSpecies; label: string; emoji: string };
 type SizeOption = { key: PetSize; label: string };
@@ -73,23 +74,17 @@ export default function EditPetScreen() {
   }, [pet]);
 
   async function handlePickImage() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
+    try {
+      const uri = await pickProfileImage();
+      if (uri) {
+        setAvatarUri(uri);
+      }
+    } catch (err: any) {
       if (Platform.OS === 'web') {
         window.alert('Permissão necessária: Permita acesso à galeria para alterar foto.');
       } else {
         Alert.alert('Permissão necessária', 'Permita acesso à galeria para alterar foto.');
       }
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]?.uri) {
-      setAvatarUri(result.assets[0].uri);
     }
   }
 

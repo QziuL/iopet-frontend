@@ -107,8 +107,6 @@ export default function ProfileScreen() {
         <SettingRow icon="person-outline" label="Editar perfil" onPress={() => router.push('/settings/edit-profile' as any)} />
         <View style={styles.divider} />
         <SettingRow icon="lock-closed-outline" label="Alterar senha" onPress={() => router.push('/settings/change-password' as any)} />
-        <View style={styles.divider} />
-        <SettingRow icon="shield-outline" label="Segurança" />
       </CardInfo>
 
       {/* Dispositivos */}
@@ -152,9 +150,17 @@ export default function ProfileScreen() {
       {/* Sobre */}
       <Text style={styles.sectionLabel}>SOBRE</Text>
       <CardInfo>
-        <SettingRow icon="help-circle-outline" label="Ajuda" />
+        <SettingRow
+          icon="help-circle-outline"
+          label="Ajuda"
+          onPress={() => router.push('/settings/help' as any)}
+        />
         <View style={styles.divider} />
-        <SettingRow icon="information-circle-outline" label="Sobre o IoPet" />
+        <SettingRow
+          icon="information-circle-outline"
+          label="Sobre o IoPet"
+          onPress={() => router.push('/settings/about' as any)}
+        />
       </CardInfo>
 
       {/* Logout */}

@@ -19,6 +19,7 @@ import { usePets } from '@/hooks/usePets';
 import { useTracking } from '@/hooks/useTracking';
 import { useAlerts } from '@/hooks/useAlerts';
 import type { Alert } from '@/types/alert.types';
+import { formatLocationTimestamp } from '@/utils/date.utils';
 
 const { width } = Dimensions.get('window');
 
@@ -153,7 +154,7 @@ export default function HomeScreen() {
             {[
               { id: 'map', icon: 'location-outline' as const, label: 'Ver no mapa', route: '/map' },
               { id: 'geo', icon: 'scan-outline' as const, label: 'Cerca virtual', route: `/geofencing/${activePet.id}` },
-              { id: 'history', icon: 'time-outline' as const, label: 'Histórico', route: '/map' },
+              { id: 'history', icon: 'time-outline' as const, label: 'Histórico', route: `/history/${activePet.id}` },
               { id: 'alerts', icon: 'notifications-outline' as const, label: 'Alertas', route: '/alerts' },
             ].map(action => (
               <TouchableOpacity
@@ -197,11 +198,8 @@ export default function HomeScreen() {
                   {tracking.currentLocation.address ?? 'Localização disponível'}
                 </Text>
                 <Text style={styles.locationMeta}>
-                  Precisão: {tracking.precision}m · Hoje,{' '}
-                  {new Date(tracking.currentLocation.timestamp).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  Precisão: {tracking.precision}m ·{' '}
+                  {formatLocationTimestamp(tracking.currentLocation.timestamp)}
                 </Text>
               </View>
             </View>

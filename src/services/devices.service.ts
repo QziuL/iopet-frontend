@@ -22,7 +22,7 @@ export const devicesService = {
       petName: dto.petNome ?? 'Sem pet vinculado',
       status: dto.ativo ? 'online' : 'offline',
       battery: dto.bateriaNivel ?? 0,
-      linkedAt: dto.ultimaComunicacao ?? new Date().toISOString(),
+      linkedAt: dto.ultimaComunicacao ?? '',
       ativo: dto.ativo,
     }));
   },

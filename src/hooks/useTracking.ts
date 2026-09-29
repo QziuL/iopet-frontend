@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { trackingService } from '@/services/tracking.service';
+import { trackingService, type HistoryFilterParams } from '@/services/tracking.service';
 
 export function useTracking(petId: string | null | undefined, hasDevice: boolean = true) {
   return useQuery({
@@ -10,11 +10,15 @@ export function useTracking(petId: string | null | undefined, hasDevice: boolean
   });
 }
 
-export function useLocationHistory(petId: string | null | undefined, hasDevice: boolean = true) {
+export function useLocationHistory(
+  petId: string | null | undefined,
+  hasDevice: boolean = true,
+  params?: HistoryFilterParams
+) {
   return useQuery({
-    queryKey: ['history', petId],
-    queryFn: () => trackingService.getLocationHistory(petId!),
+    queryKey: ['history', petId, params],
+    queryFn: () => trackingService.getLocationHistory(petId!, params),
     enabled: !!petId && hasDevice,
-    refetchInterval: 30_000,
+    refetchInterval: 20_000,
   });
 }

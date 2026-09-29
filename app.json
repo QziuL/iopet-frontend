@@ -66,8 +66,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "145751bc-21f6-4c5d-8116-b6c446410556"
+        "projectId": "18b36876-1bc3-450d-9520-eb2a51e8425c"
       }
-    }
+    },
+    "owner": "quinholi"
   }
 }

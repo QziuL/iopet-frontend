@@ -78,7 +78,7 @@ export const petsService = {
       sexo: 'M',
       especie: payload.species,
       porte: payload.size,
-      urlFoto: payload.avatarUrl,
+      urlFoto: payload.avatarUrl || null,
       dataNascimento: birthDate,
       descricao: payload.description,
     });

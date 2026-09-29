@@ -15,6 +15,7 @@ import { Colors, FontFamily, FontSize, Spacing, BorderRadius, Shadows } from '@/
 import { CardInfo, ProfileAvatar, LoadingState, EmptyState, AppHeader } from '@/components';
 import { usePet } from '@/hooks/usePets';
 import { useTracking } from '@/hooks/useTracking';
+import { formatLocationTimestamp } from '@/utils/date.utils';
 
 const { width } = Dimensions.get('window');
 
@@ -195,7 +196,7 @@ export default function PetProfileScreen() {
           {[
             { icon: 'location-outline' as const, label: 'Ver no mapa', onPress: () => router.push('/map' as any) },
             { icon: 'scan-outline' as const, label: 'Cerca virtual', onPress: () => router.push(`/geofencing/${id}` as any) },
-            { icon: 'time-outline' as const, label: 'Histórico', onPress: () => router.push('/map' as any) },
+            { icon: 'time-outline' as const, label: 'Histórico', onPress: () => router.push(`/history/${id}` as any) },
           ].map(action => (
             <TouchableOpacity
               key={action.label}
@@ -227,12 +228,7 @@ export default function PetProfileScreen() {
                 Precisão: {tracking.precision}m
               </Text>
               <Text style={styles.locationMetaText}>
-                {new Date(tracking.currentLocation.timestamp).toLocaleString('pt-BR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {formatLocationTimestamp(tracking.currentLocation.timestamp)}
               </Text>
             </View>
           </CardInfo>

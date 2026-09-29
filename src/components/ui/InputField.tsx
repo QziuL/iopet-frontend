@@ -25,6 +25,9 @@ export function InputField({
   containerStyle,
   leftIcon,
   rightIcon,
+  style,
+  multiline,
+  placeholderTextColor,
   ...rest
 }: InputFieldProps) {
   const [focused, setFocused] = useState(false);
@@ -42,20 +45,35 @@ export function InputField({
       <View
         style={[
           styles.inputWrapper,
+          multiline ? styles.inputWrapperMultiline : undefined,
           { borderColor },
           focused && styles.inputWrapperFocused,
         ]}
       >
-        {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+        {leftIcon && (
+          <View style={[styles.iconLeft, multiline ? styles.iconLeftMultiline : undefined]}>
+            {leftIcon}
+          </View>
+        )}
         <TextInput
-          style={[styles.input, leftIcon ? styles.inputWithLeft : undefined]}
-          placeholderTextColor={Colors.text.tertiary}
+          multiline={multiline}
+          placeholderTextColor={placeholderTextColor ?? Colors.text.secondary}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoCapitalize="none"
           {...rest}
+          style={[
+            styles.input,
+            leftIcon ? styles.inputWithLeft : undefined,
+            multiline ? styles.inputMultiline : undefined,
+            style,
+          ]}
         />
-        {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
+        {rightIcon && (
+          <View style={[styles.iconRight, multiline ? styles.iconRightMultiline : undefined]}>
+            {rightIcon}
+          </View>
+        )}
       </View>
 
       {error && <Text style={styles.error}>{error}</Text>}
@@ -65,7 +83,10 @@ export function InputField({
 }
 
 const styles = StyleSheet.create({
-  container: { gap: Spacing[1] + 2 },
+  container: {
+    gap: Spacing[1] + 2,
+    width: '100%',
+  },
   label: {
     fontFamily: FontFamily.medium,
     fontSize: FontSize.sm,
@@ -79,17 +100,29 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1.5,
     minHeight: 52,
+    width: '100%',
+  },
+  inputWrapperMultiline: {
+    alignItems: 'flex-start',
+    minHeight: 100,
   },
   inputWrapperFocused: {
     backgroundColor: Colors.surface.glass,
   },
   input: {
     flex: 1,
+    width: '100%',
     fontFamily: FontFamily.regular,
     fontSize: FontSize.base,
     color: Colors.text.primary,
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
+  },
+  inputMultiline: {
+    minHeight: 88,
+    textAlignVertical: 'top',
+    paddingTop: Spacing[3],
+    paddingBottom: Spacing[3],
   },
   inputWithLeft: {
     paddingLeft: Spacing[2],
@@ -97,8 +130,14 @@ const styles = StyleSheet.create({
   iconLeft: {
     paddingLeft: Spacing[4],
   },
+  iconLeftMultiline: {
+    paddingTop: Spacing[3] + 2,
+  },
   iconRight: {
     paddingRight: Spacing[4],
+  },
+  iconRightMultiline: {
+    paddingTop: Spacing[3] + 2,
   },
   error: {
     fontFamily: FontFamily.regular,

@@ -271,14 +271,25 @@ export default function MapScreen() {
             <Text style={styles.metaText}>Precisão: {tracking.precision}m</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.refreshBtn}
-            onPress={() => refetch()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="refresh-outline" size={16} color={Colors.primary.light} />
-            <Text style={styles.refreshLabel}>Atualizar</Text>
-          </TouchableOpacity>
+          <View style={styles.bottomActions}>
+            <TouchableOpacity
+              style={styles.historyBtn}
+              onPress={() => router.push(`/history/${activePet.id}` as any)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time-outline" size={16} color={Colors.primary.light} />
+              <Text style={styles.historyBtnText}>Histórico</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.refreshBtn}
+              onPress={() => refetch()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="refresh-outline" size={16} color={Colors.primary.light} />
+              <Text style={styles.refreshLabel}>Atualizar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -378,6 +389,27 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.regular,
     fontSize: FontSize.xs,
     color: Colors.text.tertiary,
+  },
+  bottomActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+  },
+  historyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+    paddingVertical: Spacing[2],
+    paddingHorizontal: Spacing[3],
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surface.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+  },
+  historyBtnText: {
+    fontFamily: FontFamily.medium,
+    fontSize: FontSize.sm,
+    color: Colors.text.primary,
   },
   refreshBtn: {
     flexDirection: 'row',

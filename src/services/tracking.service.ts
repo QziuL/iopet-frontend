@@ -23,6 +23,13 @@ export interface BackendLocationPointDTO {
   address?: string;
 }
 
+export interface HistoryFilterParams {
+  data?: string;       // Formato: YYYY-MM-DD
+  inicio?: string;     // ISO ou YYYY-MM-DDTHH:mm:ss
+  fim?: string;        // ISO ou YYYY-MM-DDTHH:mm:ss
+  limite?: number;
+}
+
 export const trackingService = {
   async getTracking(petId: string): Promise<TrackingState> {
     const { data } = await api.get<BackendTrackingDTO>(`/pets/${petId}/tracking`);
@@ -42,8 +49,8 @@ export const trackingService = {
     };
   },
 
-  async getLocationHistory(petId: string): Promise<LocationPoint[]> {
-    const { data } = await api.get<BackendLocationPointDTO[]>(`/pets/${petId}/historico`);
+  async getLocationHistory(petId: string, params?: HistoryFilterParams): Promise<LocationPoint[]> {
+    const { data } = await api.get<BackendLocationPointDTO[]>(`/pets/${petId}/historico`, { params });
     return data.map(item => ({
       latitude: item.latitude,
       longitude: item.longitude,

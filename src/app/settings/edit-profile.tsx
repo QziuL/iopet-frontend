@@ -17,6 +17,7 @@ import { Colors, FontFamily, FontSize, Spacing, BorderRadius } from '@/theme';
 import { AppHeader, InputField, PrimaryButton, ProfileAvatar } from '@/components';
 import { useAuthStore } from '@/store/auth.store';
 import { authService } from '@/services';
+import { pickProfileImage } from '@/utils/image.utils';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -29,19 +30,17 @@ export default function EditProfileScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handlePickImage() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão', 'Permita o acesso à galeria para alterar a foto.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]?.uri) {
-      setAvatarUri(result.assets[0].uri);
+    try {
+      const uri = await pickProfileImage();
+      if (uri) {
+        setAvatarUri(uri);
+      }
+    } catch (err: any) {
+      if (Platform.OS === 'web') {
+        window.alert('Permissão: Permita o acesso à galeria para alterar a foto.');
+      } else {
+        Alert.alert('Permissão', 'Permita o acesso à galeria para alterar a foto.');
+      }
     }
   }
 
